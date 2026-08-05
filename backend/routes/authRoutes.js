@@ -6,6 +6,12 @@ const {
 } = require("../controllers/authController");
 
 const protect = require("../middleware/authMiddleware");
+
+const {
+    adminOnly,
+    studentOnly,
+} = require("../middleware/roleMiddleware");
+
 const router = express.Router();
 
 // Student registration
@@ -20,6 +26,22 @@ router.get("/profile", protect, (req, res) => {
         success: true,
         message: "Protected route accessed successfully",
         user: req.user,
+    });
+});
+
+// Admin Only Route
+router.get("/admin-test", protect, adminOnly, (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome Admin!",
+    });
+});
+
+// Student Only Route
+router.get("/student-test", protect, studentOnly, (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome Student!",
     });
 });
 
