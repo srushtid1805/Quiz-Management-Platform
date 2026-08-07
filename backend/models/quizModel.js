@@ -75,7 +75,7 @@ const getAllQuizzes = async (search = "") => {
         LEFT JOIN categories c
             ON q.category_id = c.id
         WHERE q.title ILIKE $1
-        ORDER BY q.created_at DESC
+        ORDER BY q.created_at ASC
     `;
 
     const result = await pool.query(query, [`%${search}%`]);

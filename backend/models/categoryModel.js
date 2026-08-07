@@ -38,7 +38,7 @@ const getAllCategories = async () => {
             description,
             created_at
         FROM categories
-        ORDER BY created_at DESC
+        ORDER BY created_at ASC
     `;
 
     const result = await pool.query(query);
