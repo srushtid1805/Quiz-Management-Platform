@@ -1,11 +1,11 @@
 const express = require("express");
 
 const {
-    addCategory,
-    fetchAllCategories,
-    editCategory,
-    removeCategory,
-} = require("../controllers/categoryController");
+    addQuestion,
+    fetchQuestionsByQuiz,
+    editQuestion,
+    removeQuestion,
+} = require("../controllers/questionController");
 
 const protect = require("../middleware/authMiddleware");
 
@@ -15,36 +15,33 @@ const {
 
 const router = express.Router();
 
-// Create category
+// Admin: create question with options
 router.post(
-    "/",
+    "/quizzes/:quizId/questions",
     protect,
     adminOnly,
-    addCategory
+    addQuestion
 );
 
-// View all categories
 router.get(
-    "/",
+    "/quizzes/:quizId/questions",
     protect,
     adminOnly,
-    fetchAllCategories
+    fetchQuestionsByQuiz
 );
 
-// Update category
 router.put(
-    "/:id",
+    "/questions/:id",
     protect,
     adminOnly,
-    editCategory
+    editQuestion
 );
 
-// Delete category
 router.delete(
-    "/:id",
+    "/questions/:id",
     protect,
     adminOnly,
-    removeCategory
+    removeQuestion
 );
 
 module.exports = router;

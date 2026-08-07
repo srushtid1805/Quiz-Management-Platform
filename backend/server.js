@@ -11,6 +11,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const quizRoutes = require("./routes/quizRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const questionRoutes = require("./routes/questionRoutes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/quizzes", quizRoutes);
+app.use("/api", questionRoutes);
 
 const PORT = process.env.PORT || 5000;
 
