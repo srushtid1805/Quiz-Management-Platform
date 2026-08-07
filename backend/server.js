@@ -9,6 +9,9 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 
+const quizRoutes = require("./routes/quizRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -18,6 +21,8 @@ app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/quizzes", quizRoutes);
 
 const PORT = process.env.PORT || 5000;
 
