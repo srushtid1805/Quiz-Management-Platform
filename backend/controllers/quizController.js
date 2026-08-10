@@ -6,6 +6,8 @@ const {
     updateQuiz,
     deleteQuiz,
     updateQuizPublishStatus,
+    getPublishedQuizzes,
+    getPublishedQuizById,
 } = require("../models/quizModel");
 
 // Create Quiz
@@ -295,6 +297,54 @@ const changeQuizPublishStatus = async (req, res) => {
     }
 };
 
+const fetchPublishedQuizzes = async (req, res) => {
+    try {
+        const search = req.query.search || "";
+
+        const quizzes = await getPublishedQuizzes(search);
+
+        return res.status(200).json({
+            success: true,
+            count: quizzes.length,
+            quizzes,
+        });
+    } catch (error) {
+        console.error("Fetch published quizzes error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+const fetchPublishedQuizById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const quiz = await getPublishedQuizById(id);
+
+        if (!quiz) {
+            return res.status(404).json({
+                success: false,
+                message: "Quiz not found or not available",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            quiz,
+        });
+    } catch (error) {
+        console.error("Fetch published quiz error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
 module.exports = {
     addQuiz,
     fetchAllQuizzes,
@@ -302,4 +352,6 @@ module.exports = {
     editQuiz,
     removeQuiz,
     changeQuizPublishStatus,
+    fetchPublishedQuizzes,
+    fetchPublishedQuizById,
 };

@@ -185,6 +185,75 @@ const updateQuizPublishStatus = async (id, status) => {
     return result.rows[0];
 };
 
+// Get published quizzes for students
+const getPublishedQuizzes = async (search = "") => {
+    const query = `
+        SELECT
+            q.id,
+            q.title,
+            q.description,
+            q.category_id,
+            c.name AS category_name,
+            q.difficulty,
+            q.duration,
+            q.passing_score,
+            q.max_attempts,
+            q.thumbnail_url,
+            q.created_at
+        FROM quizzes q
+        LEFT JOIN categories c
+            ON q.category_id = c.id
+        WHERE q.status = 'PUBLISHED'
+        AND (
+            q.title ILIKE $1
+            OR c.name ILIKE $1
+        )
+        ORDER BY q.created_at ASC
+    `;
+
+    const result = await pool.query(
+        query,
+        [`%${search}%`]
+    );
+
+    return result.rows;
+};
+
+const getPublishedQuizById = async (id) => {
+    const query = `
+        SELECT
+            q.id,
+            q.title,
+            q.description,
+            q.category_id,
+            c.name AS category_name,
+            q.difficulty,
+            q.duration,
+            q.passing_score,
+            q.max_attempts,
+            q.thumbnail_url,
+            q.created_at,
+
+            (
+                SELECT COUNT(*)
+                FROM questions
+                WHERE quiz_id = q.id
+            ) AS total_questions
+
+        FROM quizzes q
+
+        LEFT JOIN categories c
+            ON q.category_id = c.id
+
+        WHERE q.id = $1
+        AND q.status = 'PUBLISHED'
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    return result.rows[0];
+};
+
 module.exports = {
     findCategoryById,
     createQuiz,
@@ -193,4 +262,6 @@ module.exports = {
     updateQuiz,
     deleteQuiz,
     updateQuizPublishStatus,
+    getPublishedQuizzes,
+    getPublishedQuizById,
 };

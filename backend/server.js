@@ -12,6 +12,9 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const questionRoutes = require("./routes/questionRoutes");
+const studentQuizRoutes = require("./routes/studentQuizRoutes");
+const studentAttemptRoutes = require("./routes/studentAttemptRoutes");
+const studentDashboardRoutes = require("./routes/studentDashboardRoutes");
 
 const app = express();
 
@@ -25,27 +28,28 @@ app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/quizzes", quizRoutes);
 app.use("/api", questionRoutes);
+app.use("/api/student/quizzes", studentQuizRoutes);
+app.use("/api/student/attempts", studentAttemptRoutes);
+app.use("/api/student/dashboard", studentDashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-    res.status(200).json({
-        message: "Quiz Management API is running",
-    });
+  res.status(200).json({
+    message: "Quiz Management API is running"
+  });
 });
 
-pool.connect()
-    .then((client) => {
-        console.log("PostgreSQL connected successfully");
-        client.release();
-    })
-    .catch((error) => {
-        console.error(
-            "PostgreSQL connection failed:",
-            error.message
-        );
-    });
+pool
+  .connect()
+  .then((client) => {
+    console.log("PostgreSQL connected successfully");
+    client.release();
+  })
+  .catch((error) => {
+    console.error("PostgreSQL connection failed:", error.message);
+  });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
