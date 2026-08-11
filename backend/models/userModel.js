@@ -90,10 +90,29 @@ const deleteStudent = async (id) => {
     return result.rows[0];
 };
 
+const findUserById = async (id) => {
+    const query = `
+        SELECT
+            id,
+            name,
+            email,
+            role,
+            status,
+            avatar
+        FROM users
+        WHERE id = $1
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    return result.rows[0];
+};
+
 module.exports = {
     getAllStudents,
     getStudentById,
     updateStudentStatus,
-    deleteStudent
+    deleteStudent,
+    findUserById,
 
 };

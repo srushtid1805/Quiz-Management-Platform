@@ -537,6 +537,75 @@ const fetchStudentAttemptHistory = async (req, res) => {
     }
 };
 
+const updateAttemptPosition = async (req, res) => {
+  try {
+    const { attemptId } = req.params;
+    const userId = req.user.id;
+
+    const { currentQuestion } = req.body;
+
+    if (currentQuestion === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Current question is required"
+      });
+    }
+
+    // Verify active attempt belongs to student
+    const attemptData = await getAttemptQuestions(
+      attemptId,
+      userId
+    );
+
+    if (!attemptData) {
+      return res.status(404).json({
+        success: false,
+        message: "Active quiz attempt not found"
+      });
+    }
+
+    const attempt = attemptData.attempt;
+
+    // Do not allow navigation after expiry
+    const now = new Date();
+    const expiresAt = new Date(
+      attempt.expires_at
+    );
+
+    if (now >= expiresAt) {
+      return res.status(403).json({
+        success: false,
+        message: "Quiz time has expired"
+      });
+    }
+
+    const updatedAttempt =
+      await updateCurrentQuestion(
+        attemptId,
+        userId,
+        currentQuestion
+      );
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz position saved successfully",
+      currentQuestion:
+        updatedAttempt.current_question
+    });
+
+  } catch (error) {
+    console.error(
+      "Update quiz position error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 module.exports = {
   startQuizAttempt,
   fetchAttemptQuestions,
@@ -545,4 +614,5 @@ module.exports = {
   autoSubmitExpiredAttempt,
   fetchAttemptResult,
   fetchStudentAttemptHistory,
+  updateAttemptPosition,
 };

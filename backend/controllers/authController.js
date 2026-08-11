@@ -4,6 +4,10 @@ const {
     createStudent,
 } = require("../models/authModel");
 
+const {
+    findUserById,
+} = require("../models/userModel");
+
 const generateToken = require("../utils/generateToken");
 
 // Student registration
@@ -157,7 +161,46 @@ const loginStudent = async (req, res) => {
     }
 };
 
+const getStudentProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await findUserById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Student not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                avatar: user.avatar || null,
+            },
+        });
+
+    } catch (error) {
+        console.error(
+            "Get student profile error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
 module.exports = {
     registerStudent,
     loginStudent,
+    getStudentProfile,
 };
