@@ -329,10 +329,21 @@ const StudentQuizAttempt = () => {
 
           <div
             style={{
-              background: "rgba(255,255,255,0.18)",
+              background:
+                remainingSeconds <= 30 ? "#fee2e2" : "rgba(255,255,255,0.18)",
+
+              color: remainingSeconds <= 30 ? "#dc2626" : "white",
+
               padding: "12px 18px",
               borderRadius: "12px",
-              textAlign: "center"
+              textAlign: "center",
+
+              border:
+                remainingSeconds <= 30
+                  ? "2px solid #ef4444"
+                  : "2px solid transparent",
+
+              transition: "all 0.3s ease"
             }}
           >
             <small>Time Remaining</small>

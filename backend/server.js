@@ -15,6 +15,7 @@ const questionRoutes = require("./routes/questionRoutes");
 const studentQuizRoutes = require("./routes/studentQuizRoutes");
 const studentAttemptRoutes = require("./routes/studentAttemptRoutes");
 const studentDashboardRoutes = require("./routes/studentDashboardRoutes");
+const adminAttemptRoutes = require("./routes/adminAttemptRoutes");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api", questionRoutes);
 app.use("/api/student/quizzes", studentQuizRoutes);
 app.use("/api/student/attempts", studentAttemptRoutes);
 app.use("/api/student/dashboard", studentDashboardRoutes);
+app.use("/api/admin/attempts", adminAttemptRoutes);
 
 const PORT = process.env.PORT || 5000;
 

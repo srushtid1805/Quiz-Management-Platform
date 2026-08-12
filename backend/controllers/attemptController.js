@@ -18,6 +18,9 @@ const {
   getCompletedAttempt,
   getAttemptResultAnswers,
   getStudentAttemptHistory,
+
+  getAllStudentAttemptsForAdmin,
+  getAttemptDetailsForAdmin
 } = require("../models/attemptModel");
 
 const { getPublishedQuizById } = require("../models/quizModel");
@@ -512,29 +515,24 @@ const fetchAttemptResult = async (req, res) => {
 };
 
 const fetchStudentAttemptHistory = async (req, res) => {
-    try {
-        const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-        const attempts =
-            await getStudentAttemptHistory(userId);
+    const attempts = await getStudentAttemptHistory(userId);
 
-        return res.status(200).json({
-            success: true,
-            count: attempts.length,
-            attempts,
-        });
+    return res.status(200).json({
+      success: true,
+      count: attempts.length,
+      attempts
+    });
+  } catch (error) {
+    console.error("Fetch student attempt history error:", error);
 
-    } catch (error) {
-        console.error(
-            "Fetch student attempt history error:",
-            error
-        );
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
-    }
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
 };
 
 const updateAttemptPosition = async (req, res) => {
@@ -552,10 +550,7 @@ const updateAttemptPosition = async (req, res) => {
     }
 
     // Verify active attempt belongs to student
-    const attemptData = await getAttemptQuestions(
-      attemptId,
-      userId
-    );
+    const attemptData = await getAttemptQuestions(attemptId, userId);
 
     if (!attemptData) {
       return res.status(404).json({
@@ -568,9 +563,7 @@ const updateAttemptPosition = async (req, res) => {
 
     // Do not allow navigation after expiry
     const now = new Date();
-    const expiresAt = new Date(
-      attempt.expires_at
-    );
+    const expiresAt = new Date(attempt.expires_at);
 
     if (now >= expiresAt) {
       return res.status(403).json({
@@ -579,25 +572,123 @@ const updateAttemptPosition = async (req, res) => {
       });
     }
 
-    const updatedAttempt =
-      await updateCurrentQuestion(
-        attemptId,
-        userId,
-        currentQuestion
-      );
+    const updatedAttempt = await updateCurrentQuestion(
+      attemptId,
+      userId,
+      currentQuestion
+    );
 
     return res.status(200).json({
       success: true,
       message: "Quiz position saved successfully",
-      currentQuestion:
-        updatedAttempt.current_question
+      currentQuestion: updatedAttempt.current_question
     });
-
   } catch (error) {
-    console.error(
-      "Update quiz position error:",
-      error
-    );
+    console.error("Update quiz position error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+const fetchAllAttemptsForAdmin = async (req, res) => {
+  try {
+    const attempts = await getAllStudentAttemptsForAdmin();
+
+    return res.status(200).json({
+      success: true,
+      count: attempts.length,
+      attempts
+    });
+  } catch (error) {
+    console.error("Admin fetch attempts error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+const fetchAttemptDetailsForAdmin = async (req, res) => {
+  try {
+    const { attemptId } = req.params;
+
+    const attempt = await getAttemptDetailsForAdmin(attemptId);
+
+    if (!attempt) {
+      return res.status(404).json({
+        success: false,
+        message: "Attempt not found"
+      });
+    }
+
+    const answeredRows = await getAttemptResultAnswers(attemptId);
+
+    const questions = await getQuestionsForScoring(attempt.quiz_id);
+
+    const review = [];
+
+    for (const question of questions) {
+      const answered = answeredRows.find(
+        (row) => Number(row.question_id) === Number(question.question_id)
+      );
+
+      if (answered) {
+        review.push({
+          questionId: answered.question_id,
+
+          questionText: answered.question_text,
+
+          marks: answered.marks,
+
+          selectedOptionId: answered.selected_option_id,
+
+          selectedAnswer: answered.selected_answer,
+
+          correctOptionId: answered.correct_option_id,
+
+          correctAnswer: answered.correct_answer,
+
+          isCorrect: answered.is_correct,
+
+          explanation: answered.explanation,
+
+          status: answered.is_correct ? "CORRECT" : "INCORRECT"
+        });
+      } else {
+        review.push({
+          questionId: question.question_id,
+
+          questionText: question.question_text,
+
+          marks: question.marks,
+
+          selectedOptionId: null,
+          selectedAnswer: null,
+
+          correctOptionId: question.correct_option_id,
+
+          correctAnswer: question.correct_answer,
+
+          isCorrect: false,
+
+          explanation: question.explanation,
+
+          status: "UNANSWERED"
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      attempt,
+      review
+    });
+  } catch (error) {
+    console.error("Admin fetch attempt details error:", error);
 
     return res.status(500).json({
       success: false,
@@ -615,4 +706,7 @@ module.exports = {
   fetchAttemptResult,
   fetchStudentAttemptHistory,
   updateAttemptPosition,
+  
+  fetchAllAttemptsForAdmin,
+  fetchAttemptDetailsForAdmin,
 };

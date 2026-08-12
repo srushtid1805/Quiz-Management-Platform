@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 // Find active attempt for student + quiz
 const findActiveAttempt = async (userId, quizId) => {
-    const query = `
+  const query = `
         SELECT *
         FROM attempts
         WHERE user_id = $1
@@ -12,20 +12,14 @@ const findActiveAttempt = async (userId, quizId) => {
         LIMIT 1
     `;
 
-    const result = await pool.query(query, [
-        userId,
-        quizId,
-    ]);
+  const result = await pool.query(query, [userId, quizId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Count previous completed attempts
-const countCompletedAttempts = async (
-    userId,
-    quizId
-) => {
-    const query = `
+const countCompletedAttempts = async (userId, quizId) => {
+  const query = `
         SELECT COUNT(*) AS total
         FROM attempts
         WHERE user_id = $1
@@ -33,21 +27,14 @@ const countCompletedAttempts = async (
         AND status IN ('PASSED', 'FAILED')
     `;
 
-    const result = await pool.query(query, [
-        userId,
-        quizId,
-    ]);
+  const result = await pool.query(query, [userId, quizId]);
 
-    return Number(result.rows[0].total);
+  return Number(result.rows[0].total);
 };
 
 // Create new quiz attempt
-const createAttempt = async (
-    userId,
-    quizId,
-    duration
-) => {
-    const query = `
+const createAttempt = async (userId, quizId, duration) => {
+  const query = `
         INSERT INTO attempts (
             quiz_id,
             user_id,
@@ -67,19 +54,15 @@ const createAttempt = async (
         RETURNING *
     `;
 
-    const result = await pool.query(query, [
-        quizId,
-        userId,
-        duration,
-    ]);
+  const result = await pool.query(query, [quizId, userId, duration]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Get questions safely for a student's active attempt
 const getAttemptQuestions = async (attemptId, userId) => {
-    // Verify attempt belongs to this student
-    const attemptQuery = `
+  // Verify attempt belongs to this student
+  const attemptQuery = `
         SELECT *
         FROM attempts
         WHERE id = $1
@@ -87,19 +70,16 @@ const getAttemptQuestions = async (attemptId, userId) => {
         AND status = 'IN_PROGRESS'
     `;
 
-    const attemptResult = await pool.query(
-        attemptQuery,
-        [attemptId, userId]
-    );
+  const attemptResult = await pool.query(attemptQuery, [attemptId, userId]);
 
-    if (attemptResult.rows.length === 0) {
-        return null;
-    }
+  if (attemptResult.rows.length === 0) {
+    return null;
+  }
 
-    const attempt = attemptResult.rows[0];
+  const attempt = attemptResult.rows[0];
 
-    // Get quiz questions
-    const questionQuery = `
+  // Get quiz questions
+  const questionQuery = `
         SELECT
             q.id,
             q.question_text,
@@ -110,17 +90,13 @@ const getAttemptQuestions = async (attemptId, userId) => {
         ORDER BY q.id ASC
     `;
 
-    const questionResult = await pool.query(
-        questionQuery,
-        [attempt.quiz_id]
-    );
+  const questionResult = await pool.query(questionQuery, [attempt.quiz_id]);
 
-    const questions = [];
+  const questions = [];
 
-    for (const question of questionResult.rows) {
-
-        // Safe options - NO is_correct
-        const optionQuery = `
+  for (const question of questionResult.rows) {
+    // Safe options - NO is_correct
+    const optionQuery = `
             SELECT
                 id,
                 option_text
@@ -129,76 +105,56 @@ const getAttemptQuestions = async (attemptId, userId) => {
             ORDER BY id ASC
         `;
 
-        const optionResult = await pool.query(
-            optionQuery,
-            [question.id]
-        );
+    const optionResult = await pool.query(optionQuery, [question.id]);
 
-        // Find student's saved answer
-        const answerQuery = `
+    // Find student's saved answer
+    const answerQuery = `
             SELECT selected_option_id
             FROM answers
             WHERE attempt_id = $1
             AND question_id = $2
         `;
 
-        const answerResult = await pool.query(
-            answerQuery,
-            [
-                attemptId,
-                question.id,
-            ]
-        );
+    const answerResult = await pool.query(answerQuery, [
+      attemptId,
+      question.id
+    ]);
 
-        const selectedOptionId =
-            answerResult.rows[0]?.selected_option_id || null;
+    const selectedOptionId = answerResult.rows[0]?.selected_option_id || null;
 
-        questions.push({
-            ...question,
-            options: optionResult.rows,
-            selected_option_id: selectedOptionId,
-        });
-    }
+    questions.push({
+      ...question,
+      options: optionResult.rows,
+      selected_option_id: selectedOptionId
+    });
+  }
 
-    return {
-        attempt,
-        questions,
-    };
+  return {
+    attempt,
+    questions
+  };
 };
 
 // Check if an answer already exists
-const findAnswer = async (
-    attemptId,
-    questionId
-) => {
-    const query = `
+const findAnswer = async (attemptId, questionId) => {
+  const query = `
         SELECT *
         FROM answers
         WHERE attempt_id = $1
         AND question_id = $2
     `;
 
-    const result = await pool.query(query, [
-        attemptId,
-        questionId,
-    ]);
+  const result = await pool.query(query, [attemptId, questionId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Insert or update selected answer
-const saveAnswer = async (
-    attemptId,
-    questionId,
-    selectedOptionId
-) => {
-    const existingAnswer = await findAnswer(
-        attemptId,
-        questionId
-    );
+const saveAnswer = async (attemptId, questionId, selectedOptionId) => {
+  const existingAnswer = await findAnswer(attemptId, questionId);
 
-    if (existingAnswer) {
-        const query = `
+  if (existingAnswer) {
+    const query = `
             UPDATE answers
             SET
                 selected_option_id = $1,
@@ -208,16 +164,16 @@ const saveAnswer = async (
             RETURNING *
         `;
 
-        const result = await pool.query(query, [
-            selectedOptionId,
-            attemptId,
-            questionId,
-        ]);
+    const result = await pool.query(query, [
+      selectedOptionId,
+      attemptId,
+      questionId
+    ]);
 
-        return result.rows[0];
-    }
+    return result.rows[0];
+  }
 
-    const query = `
+  const query = `
         INSERT INTO answers (
             attempt_id,
             question_id,
@@ -228,22 +184,18 @@ const saveAnswer = async (
         RETURNING *
     `;
 
-    const result = await pool.query(query, [
-        attemptId,
-        questionId,
-        selectedOptionId,
-    ]);
+  const result = await pool.query(query, [
+    attemptId,
+    questionId,
+    selectedOptionId
+  ]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Update student's current question position
-const updateCurrentQuestion = async (
-    attemptId,
-    userId,
-    currentQuestion
-) => {
-    const query = `
+const updateCurrentQuestion = async (attemptId, userId, currentQuestion) => {
+  const query = `
         UPDATE attempts
         SET current_question = $1
         WHERE id = $2
@@ -252,17 +204,13 @@ const updateCurrentQuestion = async (
         RETURNING *
     `;
 
-    const result = await pool.query(query, [
-        currentQuestion,
-        attemptId,
-        userId,
-    ]);
+  const result = await pool.query(query, [currentQuestion, attemptId, userId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 const getAttemptForSubmission = async (attemptId, userId) => {
-    const query = `
+  const query = `
         SELECT *
         FROM attempts
         WHERE id = $1
@@ -270,17 +218,13 @@ const getAttemptForSubmission = async (attemptId, userId) => {
         AND status = 'IN_PROGRESS'
     `;
 
-    const result = await pool.query(query, [
-        attemptId,
-        userId,
-    ]);
+  const result = await pool.query(query, [attemptId, userId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
-
 const getQuestionsForScoring = async (quizId) => {
-    const query = `
+  const query = `
         SELECT
             q.id AS question_id,
             q.question_text,
@@ -296,14 +240,13 @@ const getQuestionsForScoring = async (quizId) => {
         ORDER BY q.id ASC
     `;
 
-    const result = await pool.query(query, [quizId]);
+  const result = await pool.query(query, [quizId]);
 
-    return result.rows;
+  return result.rows;
 };
 
-
 const getSavedAnswers = async (attemptId) => {
-    const query = `
+  const query = `
         SELECT
             id,
             question_id,
@@ -312,42 +255,34 @@ const getSavedAnswers = async (attemptId) => {
         WHERE attempt_id = $1
     `;
 
-    const result = await pool.query(query, [attemptId]);
+  const result = await pool.query(query, [attemptId]);
 
-    return result.rows;
+  return result.rows;
 };
 
-
-const updateAnswerCorrectness = async (
-    answerId,
-    isCorrect
-) => {
-    const query = `
+const updateAnswerCorrectness = async (answerId, isCorrect) => {
+  const query = `
         UPDATE answers
         SET is_correct = $1
         WHERE id = $2
     `;
 
-    await pool.query(query, [
-        isCorrect,
-        answerId,
-    ]);
+  await pool.query(query, [isCorrect, answerId]);
 };
 
-
 const completeAttempt = async (
-    attemptId,
-    {
-        score,
-        percentage,
-        correctAnswers,
-        incorrectAnswers,
-        unanswered,
-        timeTaken,
-        status,
-    }
+  attemptId,
+  {
+    score,
+    percentage,
+    correctAnswers,
+    incorrectAnswers,
+    unanswered,
+    timeTaken,
+    status
+  }
 ) => {
-    const query = `
+  const query = `
         UPDATE attempts
         SET
             score = $1,
@@ -362,27 +297,24 @@ const completeAttempt = async (
         RETURNING *
     `;
 
-    const values = [
-        score,
-        percentage,
-        correctAnswers,
-        incorrectAnswers,
-        unanswered,
-        timeTaken,
-        status,
-        attemptId,
-    ];
+  const values = [
+    score,
+    percentage,
+    correctAnswers,
+    incorrectAnswers,
+    unanswered,
+    timeTaken,
+    status,
+    attemptId
+  ];
 
-    const result = await pool.query(query, values);
+  const result = await pool.query(query, values);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
-const getAttemptForAutoSubmission = async (
-    attemptId,
-    userId
-) => {
-    const query = `
+const getAttemptForAutoSubmission = async (attemptId, userId) => {
+  const query = `
         SELECT *
         FROM attempts
         WHERE id = $1
@@ -391,17 +323,14 @@ const getAttemptForAutoSubmission = async (
         AND expires_at <= CURRENT_TIMESTAMP
     `;
 
-    const result = await pool.query(query, [
-        attemptId,
-        userId,
-    ]);
+  const result = await pool.query(query, [attemptId, userId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Get completed attempt
 const getCompletedAttempt = async (attemptId, userId) => {
-    const query = `
+  const query = `
         SELECT
             a.*,
             q.title AS quiz_title,
@@ -415,17 +344,14 @@ const getCompletedAttempt = async (attemptId, userId) => {
         AND a.status IN ('PASSED', 'FAILED')
     `;
 
-    const result = await pool.query(query, [
-        attemptId,
-        userId,
-    ]);
+  const result = await pool.query(query, [attemptId, userId]);
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
 // Get detailed answer review AFTER submission
 const getAttemptResultAnswers = async (attemptId) => {
-    const query = `
+  const query = `
         SELECT
             q.id AS question_id,
             q.question_text,
@@ -457,16 +383,13 @@ const getAttemptResultAnswers = async (attemptId) => {
         ORDER BY q.id ASC
     `;
 
-    const result = await pool.query(
-        query,
-        [attemptId]
-    );
+  const result = await pool.query(query, [attemptId]);
 
-    return result.rows;
+  return result.rows;
 };
 
 const getStudentAttemptHistory = async (userId) => {
-    const query = `
+  const query = `
         SELECT
             a.id AS attempt_id,
             a.quiz_id,
@@ -499,16 +422,13 @@ const getStudentAttemptHistory = async (userId) => {
         ORDER BY a.completed_at DESC
     `;
 
-    const result = await pool.query(
-        query,
-        [userId]
-    );
+  const result = await pool.query(query, [userId]);
 
-    return result.rows;
+  return result.rows;
 };
 
 const getExpiredAttempts = async (userId) => {
-    const query = `
+  const query = `
         SELECT *
         FROM attempts
         WHERE user_id = $1
@@ -517,33 +437,116 @@ const getExpiredAttempts = async (userId) => {
         ORDER BY expires_at ASC
     `;
 
-    const result = await pool.query(
-        query,
-        [userId]
-    );
+  const result = await pool.query(query, [userId]);
 
-    return result.rows;
+  return result.rows;
+};
+
+// Admin - get all completed student attempts
+const getAllStudentAttemptsForAdmin = async () => {
+  const query = `
+        SELECT
+            a.id AS attempt_id,
+            a.user_id,
+            u.name AS student_name,
+            u.email AS student_email,
+
+            a.quiz_id,
+            q.title AS quiz_title,
+            c.name AS category_name,
+            q.difficulty,
+
+            a.score,
+            a.percentage,
+            a.correct_answers,
+            a.incorrect_answers,
+            a.unanswered,
+            a.time_taken,
+            a.status,
+
+            a.started_at,
+            a.completed_at
+
+        FROM attempts a
+
+        JOIN users u
+            ON a.user_id = u.id
+
+        JOIN quizzes q
+            ON a.quiz_id = q.id
+
+        LEFT JOIN categories c
+            ON q.category_id = c.id
+
+        WHERE a.status IN ('PASSED', 'FAILED')
+
+        ORDER BY a.completed_at DESC
+    `;
+
+  const result = await pool.query(query);
+
+  return result.rows;
+};
+
+// Admin - get one completed attempt with student + quiz details
+const getAttemptDetailsForAdmin = async (attemptId) => {
+  const query = `
+        SELECT
+            a.*,
+
+            u.name AS student_name,
+            u.email AS student_email,
+
+            q.title AS quiz_title,
+            q.description AS quiz_description,
+            q.passing_score,
+
+            c.name AS category_name,
+            q.difficulty
+
+        FROM attempts a
+
+        JOIN users u
+            ON a.user_id = u.id
+
+        JOIN quizzes q
+            ON a.quiz_id = q.id
+
+        LEFT JOIN categories c
+            ON q.category_id = c.id
+
+        WHERE a.id = $1
+        AND a.status IN ('PASSED', 'FAILED')
+    `;
+
+  const result = await pool.query(query, [attemptId]);
+
+  return result.rows[0];
 };
 
 module.exports = {
-    findActiveAttempt,
-    countCompletedAttempts,
-    createAttempt,
-    getAttemptQuestions,
-    findAnswer,
-    saveAnswer,
-    updateCurrentQuestion,
+  findActiveAttempt,
+  countCompletedAttempts,
+  createAttempt,
+  getAttemptQuestions,
+  findAnswer,
+  saveAnswer,
+  updateCurrentQuestion,
 
-    getAttemptForSubmission,
-    getQuestionsForScoring,
-    getSavedAnswers,
-    updateAnswerCorrectness,
-    completeAttempt,
+  getAttemptForSubmission,
+  getQuestionsForScoring,
+  getSavedAnswers,
+  updateAnswerCorrectness,
+  completeAttempt,
 
-    getAttemptForAutoSubmission,
+  getAttemptForAutoSubmission,
 
-    getCompletedAttempt,
-    getAttemptResultAnswers,
-    getStudentAttemptHistory,
-    getExpiredAttempts,
+  getCompletedAttempt,
+  getAttemptResultAnswers,
+  getStudentAttemptHistory,
+  getExpiredAttempts,
+
+  //Admin
+  getAllStudentAttemptsForAdmin,
+  getAttemptDetailsForAdmin,
 };

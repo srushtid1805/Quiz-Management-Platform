@@ -84,6 +84,58 @@ const getStudentDashboardData = async (userId) => {
         LIMIT 5
     `;
 
+  const performanceTrendQuery = `
+    SELECT
+        a.id AS attempt_id,
+        q.title AS quiz_title,
+        a.percentage,
+        a.completed_at
+    FROM attempts a
+
+    JOIN quizzes q
+        ON a.quiz_id = q.id
+
+    WHERE a.user_id = $1
+    AND a.status IN ('PASSED', 'FAILED')
+
+    ORDER BY a.completed_at ASC
+`;
+
+  const performanceTrendResult = await pool.query(performanceTrendQuery, [
+    userId
+  ]);
+
+  const categoryPerformanceQuery = `
+    SELECT
+        COALESCE(c.name, 'Uncategorized') AS category_name,
+
+        ROUND(
+            AVG(a.percentage),
+            2
+        ) AS average_score,
+
+        COUNT(a.id) AS total_attempts
+
+    FROM attempts a
+
+    JOIN quizzes q
+        ON a.quiz_id = q.id
+
+    LEFT JOIN categories c
+        ON q.category_id = c.id
+
+    WHERE a.user_id = $1
+    AND a.status IN ('PASSED', 'FAILED')
+
+    GROUP BY COALESCE(c.name, 'Uncategorized')
+
+    ORDER BY average_score DESC
+`;
+
+  const categoryPerformanceResult = await pool.query(categoryPerformanceQuery, [
+    userId
+  ]);
+
   const recentAttemptsResult = await pool.query(recentAttemptsQuery, [userId]);
 
   const availableQuizzesQuery = `
@@ -149,9 +201,16 @@ const getStudentDashboardData = async (userId) => {
 
   return {
     statistics: statisticsResult.rows[0],
+
     activeAttempts: activeAttemptsResult.rows,
+
     recentAttempts: recentAttemptsResult.rows,
-    availableQuizzes
+
+    availableQuizzes,
+
+    performanceTrend: performanceTrendResult.rows,
+
+    categoryPerformance: categoryPerformanceResult.rows
   };
 };
 

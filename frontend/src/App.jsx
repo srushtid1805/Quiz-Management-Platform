@@ -17,6 +17,8 @@ import StudentResult from "./pages/student/StudentResult";
 import StudentAttemptHistory from "./pages/student/StudentAttemptHistory";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
 import StudentProfile from "./pages/student/StudentProfile";
+import AdminAttempts from "./pages/admin/AdminAttempts";
+import AdminAttemptResult from "./pages/admin/AdminAttemptResult";
 
 function App() {
   return (
@@ -133,6 +135,24 @@ function App() {
             <StudentProtectedRoute>
               <StudentProfile />
             </StudentProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/attempts"
+          element={
+            <AdminProtectedRoute>
+              <AdminAttempts />
+            </AdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/attempts/:attemptId"
+          element={
+            <AdminProtectedRoute>
+              <AdminAttemptResult />
+            </AdminProtectedRoute>
           }
         />
       </Routes>

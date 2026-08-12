@@ -1,31 +1,39 @@
 const {
     getDashboardStatistics,
+    getQuizPerformance,
+    getCategoryPerformance,
 } = require("../models/dashboardModel");
 
 // Get Admin Dashboard Statistics
 const fetchDashboardStatistics = async (req, res) => {
-    try {
+  try {
+    const statistics =
+      await getDashboardStatistics();
 
-        const statistics = await getDashboardStatistics();
+    const quizPerformance =
+      await getQuizPerformance();
 
-        return res.status(200).json({
-            success: true,
-            statistics,
-        });
+    const categoryPerformance =
+      await getCategoryPerformance();
 
-    } catch (error) {
+    return res.status(200).json({
+      success: true,
+      statistics,
+      quizPerformance,
+      categoryPerformance,
+    });
 
-        console.error(
-            "Dashboard statistics error:",
-            error
-        );
+  } catch (error) {
+    console.error(
+      "Dashboard statistics error:",
+      error
+    );
 
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
-
-    }
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };
 
 module.exports = {

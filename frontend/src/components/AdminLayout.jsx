@@ -1,108 +1,191 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const AdminLayout = ({ children }) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleLogout = () => {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("adminUser");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-        navigate("/admin/login");
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
 
-    const linkStyle = ({ isActive }) => ({
-        display: "block",
-        padding: "12px 16px",
-        marginBottom: "8px",
-        borderRadius: "8px",
-        textDecoration: "none",
-        color: isActive ? "white" : "#d1d5db",
-        background: isActive ? "#2563eb" : "transparent",
-    });
+    navigate("/admin/login");
+  };
 
-    return (
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                background: "#f3f4f6",
-            }}
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
+  const linkStyle = ({ isActive }) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+
+    padding: "12px 16px",
+    marginBottom: "8px",
+
+    borderRadius: "8px",
+
+    textDecoration: "none",
+
+    color: isActive
+      ? "white"
+      : "#d1d5db",
+
+    background: isActive
+      ? "#2563eb"
+      : "transparent",
+
+    fontWeight: isActive
+      ? "600"
+      : "500"
+  });
+
+  return (
+    <div className="admin-layout">
+
+      {/* MOBILE HEADER */}
+      <div className="admin-mobile-header">
+
+        <button
+          className="admin-menu-button"
+          onClick={() =>
+            setSidebarOpen(true)
+          }
         >
-            <aside
-                style={{
-                    width: "240px",
-                    background: "#111827",
-                    padding: "24px 16px",
-                    color: "white",
-                }}
-            >
-                <h2 style={{ marginBottom: "30px" }}>
-                    Quiz Admin
-                </h2>
+          ☰
+        </button>
 
-                <NavLink
-                    to="/admin/dashboard"
-                    style={linkStyle}
-                >
-                    Dashboard
-                </NavLink>
+        <strong>
+          Quiz Admin
+        </strong>
 
-                <NavLink
-                    to="/admin/students"
-                    style={linkStyle}
-                >
-                    Students
-                </NavLink>
+        <div
+          style={{
+            width: "40px"
+          }}
+        />
 
-                <NavLink
-                    to="/admin/categories"
-                    style={linkStyle}
-                >
-                    Categories
-                </NavLink>
+      </div>
 
-                <NavLink
-                    to="/admin/quizzes"
-                    style={linkStyle}
-                >
-                    Quizzes
-                </NavLink>
 
-                <NavLink
-                    to="/admin/questions"
-                    style={linkStyle}
-                >
-                    Questions
-                </NavLink>
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div
+          className="admin-sidebar-overlay"
+          onClick={closeSidebar}
+        />
+      )}
 
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        width: "100%",
-                        marginTop: "30px",
-                        padding: "12px",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        background: "#dc2626",
-                        color: "white",
-                    }}
-                >
-                    Logout
-                </button>
-            </aside>
 
-            <main
-                style={{
-                    flex: 1,
-                    padding: "30px",
-                    color: "#111827",
-                }}
-            >
-                {children}
-            </main>
+      {/* SIDEBAR */}
+      <aside
+        className={`admin-sidebar ${
+          sidebarOpen
+            ? "admin-sidebar-open"
+            : ""
+        }`}
+      >
+
+        <div className="admin-sidebar-header">
+
+          <h2>
+            Quiz Admin
+          </h2>
+
+          <button
+            className="admin-sidebar-close"
+            onClick={closeSidebar}
+          >
+            ✕
+          </button>
+
         </div>
-    );
+
+
+        {/* NAVIGATION */}
+        <nav className="admin-sidebar-nav">
+
+          <NavLink
+            to="/admin/dashboard"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            🏠 Dashboard
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/students"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            👥 Students
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/categories"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            🗂️ Categories
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/quizzes"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            📝 Quizzes
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/questions"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            ❓ Questions
+          </NavLink>
+
+
+          <NavLink
+            to="/admin/attempts"
+            style={linkStyle}
+            onClick={closeSidebar}
+          >
+            📊 Attempts & Results
+          </NavLink>
+
+        </nav>
+
+
+        {/* PUSH LOGOUT TO BOTTOM */}
+        <div style={{ flex: 1 }} />
+
+
+        <button
+          onClick={handleLogout}
+          className="admin-logout-button"
+        >
+          🚪 Logout
+        </button>
+
+      </aside>
+
+
+      {/* MAIN CONTENT */}
+      <main className="admin-main-content">
+
+        {children}
+
+      </main>
+
+    </div>
+  );
 };
 
 export default AdminLayout;

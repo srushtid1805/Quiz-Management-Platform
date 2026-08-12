@@ -343,6 +343,121 @@ const StudentDashboard = () => {
               </div>
             ))
           )}
+          {/* PERFORMANCE ANALYTICS */}
+          <div className="student-performance-grid">
+            {/* PERFORMANCE TREND */}
+            <section className="student-performance-card">
+              <div className="student-section-header">
+                <div>
+                  <h2>Performance Over Time</h2>
+                  <p>See how your quiz scores are changing across attempts.</p>
+                </div>
+              </div>
+
+              {dashboard.performanceTrend.length === 0 ? (
+                <p className="student-empty-text">
+                  No performance data available yet.
+                </p>
+              ) : (
+                <div className="student-performance-list">
+                  {dashboard.performanceTrend.map((attempt, index) => {
+                    const percentage = Number(attempt.percentage) || 0;
+
+                    return (
+                      <div
+                        key={attempt.attempt_id}
+                        className="student-performance-item"
+                      >
+                        <div className="student-performance-item-top">
+                          <div>
+                            <strong>Attempt {index + 1}</strong>
+
+                            <span>{attempt.quiz_title}</span>
+                          </div>
+
+                          <strong
+                            className={
+                              percentage >= 60
+                                ? "student-score-good"
+                                : "student-score-low"
+                            }
+                          >
+                            {percentage.toFixed(0)}%
+                          </strong>
+                        </div>
+
+                        <div className="student-performance-track">
+                          <div
+                            className="student-performance-fill"
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`,
+                              background:
+                                percentage >= 60 ? "#22c55e" : "#8b5cf6"
+                            }}
+                          />
+                        </div>
+
+                        <small>
+                          {formatDashboardDate(attempt.completed_at)}
+                        </small>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* CATEGORY PERFORMANCE */}
+            <section className="student-performance-card">
+              <div className="student-section-header">
+                <div>
+                  <h2>Category Performance</h2>
+                  <p>Your average score across different subjects.</p>
+                </div>
+              </div>
+
+              {dashboard.categoryPerformance.length === 0 ? (
+                <p className="student-empty-text">
+                  No category performance available yet.
+                </p>
+              ) : (
+                <div className="student-performance-list">
+                  {dashboard.categoryPerformance.map((category) => {
+                    const percentage = Number(category.average_score) || 0;
+
+                    return (
+                      <div
+                        key={category.category_name}
+                        className="student-performance-item"
+                      >
+                        <div className="student-performance-item-top">
+                          <div>
+                            <strong>{category.category_name}</strong>
+
+                            <span>
+                              {category.total_attempts} attempt
+                              {Number(category.total_attempts) === 1 ? "" : "s"}
+                            </span>
+                          </div>
+
+                          <strong>{percentage.toFixed(0)}%</strong>
+                        </div>
+
+                        <div className="student-performance-track">
+                          <div
+                            className="student-performance-fill"
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
         </section>
       </div>
     </StudentLayout>
@@ -356,6 +471,15 @@ const badgeStyle = {
   color: "#5b3fd6",
   fontSize: "12px",
   fontWeight: "500"
+};
+
+const formatDashboardDate = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short"
+  });
 };
 
 const StatCard = ({ title, value, color }) => {

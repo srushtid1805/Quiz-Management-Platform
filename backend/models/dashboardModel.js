@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 // Get admin dashboard statistics
 const getDashboardStatistics = async () => {
-    const query = `
+  const query = `
         SELECT
             (
                 SELECT COUNT(*)
@@ -38,7 +38,10 @@ const getDashboardStatistics = async () => {
             ) AS total_attempts,
 
             (
-                SELECT COALESCE(AVG(percentage), 0)
+                SELECT ROUND(
+                    COALESCE(AVG(percentage), 0),
+                    2
+                )
                 FROM attempts
             ) AS average_score,
 
@@ -55,11 +58,99 @@ const getDashboardStatistics = async () => {
             ) AS failed_attempts
     `;
 
-    const result = await pool.query(query);
+  const result = await pool.query(query);
 
-    return result.rows[0];
+  return result.rows[0];
+};
+
+const getQuizPerformance = async () => {
+  const query = `
+    SELECT
+      q.id AS quiz_id,
+      q.title AS quiz_title,
+
+      COUNT(a.id) FILTER (
+        WHERE a.status IN ('PASSED', 'FAILED')
+      ) AS total_attempts,
+
+      ROUND(
+        COALESCE(
+          AVG(a.percentage) FILTER (
+            WHERE a.status IN ('PASSED', 'FAILED')
+          ),
+          0
+        ),
+        2
+      ) AS average_score,
+
+      COUNT(a.id) FILTER (
+        WHERE a.status = 'PASSED'
+      ) AS passed_attempts,
+
+      COUNT(a.id) FILTER (
+        WHERE a.status = 'FAILED'
+      ) AS failed_attempts
+
+    FROM quizzes q
+
+    LEFT JOIN attempts a
+      ON a.quiz_id = q.id
+
+    GROUP BY
+      q.id,
+      q.title
+
+    ORDER BY average_score DESC
+  `;
+
+  const result = await pool.query(query);
+
+  return result.rows;
+};
+
+const getCategoryPerformance = async () => {
+  const query = `
+    SELECT
+      COALESCE(
+        c.name,
+        'Uncategorized'
+      ) AS category_name,
+
+      COUNT(a.id) FILTER (
+        WHERE a.status IN ('PASSED', 'FAILED')
+      ) AS total_attempts,
+
+      ROUND(
+        COALESCE(
+          AVG(a.percentage) FILTER (
+            WHERE a.status IN ('PASSED', 'FAILED')
+          ),
+          0
+        ),
+        2
+      ) AS average_score
+
+    FROM categories c
+
+    LEFT JOIN quizzes q
+      ON q.category_id = c.id
+
+    LEFT JOIN attempts a
+      ON a.quiz_id = q.id
+
+    GROUP BY
+      c.name
+
+    ORDER BY average_score DESC
+  `;
+
+  const result = await pool.query(query);
+
+  return result.rows;
 };
 
 module.exports = {
-    getDashboardStatistics,
+  getDashboardStatistics,
+  getQuizPerformance,
+  getCategoryPerformance
 };
