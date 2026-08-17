@@ -41,6 +41,16 @@ const startQuizAttempt = async (req, res) => {
       });
     }
 
+    // Make sure quiz contains questions before starting an attempt
+    const questions = await getQuestionsForScoring(quizId);
+
+    if (questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "This quiz does not contain any questions yet"
+      });
+    }
+
     // Check if student already has an active attempt
     const activeAttempt = await findActiveAttempt(userId, quizId);
 
@@ -102,9 +112,9 @@ const fetchAttemptQuestions = async (req, res) => {
 
     const remainingSeconds = Math.max(
       0,
-      Math.floor((expiresAt.getTime() - now.getTime()) / 1000)
+      Math.ceil((expiresAt.getTime() - now.getTime()) / 1000)
     );
-
+    
     return res.status(200).json({
       success: true,
       attempt: data.attempt,
@@ -706,7 +716,7 @@ module.exports = {
   fetchAttemptResult,
   fetchStudentAttemptHistory,
   updateAttemptPosition,
-  
+
   fetchAllAttemptsForAdmin,
-  fetchAttemptDetailsForAdmin,
+  fetchAttemptDetailsForAdmin
 };

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+
+import api from "../../services/api";
 
 const StudentLogin = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    password: ""
   });
 
   const [error, setError] = useState("");
@@ -16,7 +17,7 @@ const StudentLogin = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
   };
 
@@ -27,10 +28,7 @@ const StudentLogin = () => {
       setLoading(true);
       setError("");
 
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
+      const response = await api.post("/auth/login", formData);
 
       const { token, user } = response.data;
 
@@ -41,17 +39,13 @@ const StudentLogin = () => {
 
       localStorage.setItem("studentToken", token);
 
-      localStorage.setItem(
-        "studentUser",
-        JSON.stringify(user)
-      );
+      localStorage.setItem("studentUser", JSON.stringify(user));
 
-      navigate("/student/dashboard");
-
+      navigate("/student/dashboard", { replace: true });
+      
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          "Login failed. Please try again."
+        error.response?.data?.message || "Login failed. Please try again."
       );
     } finally {
       setLoading(false);
@@ -59,83 +53,65 @@ const StudentLogin = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f3f4f6",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          width: "350px",
-          background: "white",
-          padding: "30px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-        }}
-      >
-        <h1>Student Login</h1>
+    <div className="student-auth-page">
+      <div className="student-auth-card">
+        {/* BRAND */}
+        <div className="student-auth-brand">
+          <div className="student-auth-logo">🎓</div>
 
-        <p style={{ color: "#6b7280" }}>
-          Login to continue your quizzes.
+          <h1>Welcome Back</h1>
+
+          <p>Login to continue your learning journey with QuizMaster.</p>
+        </div>
+
+        {/* ERROR */}
+        {error && <div className="student-auth-error">{error}</div>}
+
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="student-auth-form">
+          <div className="student-auth-field">
+            <label>Email Address</label>
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="student-auth-field">
+            <label>Password</label>
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="student-auth-submit"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        {/* REGISTER */}
+        <p className="student-auth-switch">
+          Don't have an account?{" "}
+          <Link to="/student/register">Create Account</Link>
         </p>
-
-        {error && (
-          <p style={{ color: "#dc2626" }}>
-            {error}
-          </p>
-        )}
-
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "11px",
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+      </div>
     </div>
   );
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  marginTop: "15px",
-  marginBottom: "10px",
-  boxSizing: "border-box",
 };
 
 export default StudentLogin;

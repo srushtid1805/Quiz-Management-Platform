@@ -213,68 +213,77 @@ const StudentDashboard = () => {
             Available Quizzes
           </h2>
 
-          {dashboard.availableQuizzes.map((quiz) => (
-            <div
-              key={quiz.id}
-              style={{
-                padding: "16px",
-                marginBottom: "14px",
-                borderRadius: "14px",
-                background: "#faf9ff",
-                border: "1px solid #f0edff"
-              }}
-            >
-              <h3 style={{ margin: "0 0 6px" }}>{quiz.title}</h3>
+          {dashboard.availableQuizzes.map((quiz) => {
+            const hasQuestions = Number(quiz.total_questions) > 0;
 
-              <p
-                style={{
-                  margin: "0 0 10px",
-                  color: "#6b7280"
-                }}
-              >
-                {quiz.description}
-              </p>
-
+            return (
               <div
+                key={quiz.id}
                 style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                  marginBottom: "12px"
+                  padding: "16px",
+                  marginBottom: "14px",
+                  borderRadius: "14px",
+                  background: "#faf9ff",
+                  border: "1px solid #f0edff"
                 }}
               >
-                <span style={badgeStyle}>{quiz.category_name}</span>
+                <h3 style={{ margin: "0 0 6px" }}>{quiz.title}</h3>
 
-                <span style={badgeStyle}>{quiz.difficulty}</span>
+                <p
+                  style={{
+                    margin: "0 0 10px",
+                    color: "#6b7280"
+                  }}
+                >
+                  {quiz.description}
+                </p>
 
-                <span style={badgeStyle}>{quiz.duration} min</span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginBottom: "12px"
+                  }}
+                >
+                  <span style={badgeStyle}>{quiz.category_name}</span>
 
-                <span style={badgeStyle}>
-                  Attempts {quiz.attempts_used}/{quiz.max_attempts}
-                </span>
+                  <span style={badgeStyle}>{quiz.difficulty}</span>
+
+                  <span style={badgeStyle}>{quiz.duration} min</span>
+
+                  <span style={badgeStyle}>
+                    Attempts {quiz.attempts_used}/{quiz.max_attempts}
+                  </span>
+                </div>
+                <button
+                  disabled={!quiz.can_attempt}
+                  onClick={() => {
+                    if (quiz.can_attempt) {
+                      navigate(`/student/quizzes/${quiz.id}`);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "none",
+                    borderRadius: "9px",
+                    cursor: quiz.can_attempt ? "pointer" : "not-allowed",
+
+                    background: quiz.can_attempt ? "#6d5dfc" : "#e5e7eb",
+
+                    color: quiz.can_attempt ? "white" : "#9ca3af"
+                  }}
+                >
+                  {!hasQuestions
+                    ? "No Questions Available"
+                    : quiz.attempts_remaining <= 0
+                      ? "Maximum Attempts Reached"
+                      : "Start Quiz"}
+                </button>
               </div>
-
-              <button
-                disabled={!quiz.can_attempt}
-                onClick={() => {
-                  if (quiz.can_attempt) {
-                    navigate(`/student/quizzes/${quiz.id}`);
-                  }
-                }}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  border: "none",
-                  borderRadius: "9px",
-                  cursor: quiz.can_attempt ? "pointer" : "not-allowed",
-                  background: quiz.can_attempt ? "#6d5dfc" : "#e5e7eb",
-                  color: quiz.can_attempt ? "white" : "#9ca3af"
-                }}
-              >
-                {quiz.can_attempt ? "Start Quiz" : "Maximum Attempts Reached"}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </section>
 
         {/* RECENT ATTEMPTS */}

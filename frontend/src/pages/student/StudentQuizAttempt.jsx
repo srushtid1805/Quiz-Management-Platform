@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import StudentLayout from "../../components/StudentLayout";
@@ -6,6 +6,7 @@ import api from "../../services/api";
 
 const StudentQuizAttempt = () => {
   const { attemptId } = useParams();
+  const autoSubmitStarted = useRef(false);
   const [warningMessage, setWarningMessage] = useState("");
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState(null);
@@ -93,9 +94,16 @@ const StudentQuizAttempt = () => {
   }, [warningMessage]);
 
   useEffect(() => {
-    if (remainingSeconds !== 0 || !attempt || loading) {
+    if (
+      remainingSeconds !== 0 ||
+      !attempt ||
+      loading ||
+      autoSubmitStarted.current
+    ) {
       return;
     }
+
+    autoSubmitStarted.current = true;
 
     const autoSubmitQuiz = async () => {
       try {
@@ -111,14 +119,32 @@ const StudentQuizAttempt = () => {
           }
         );
 
-        navigate(`/student/attempts/${attemptId}/result`);
+        navigate(`/student/attempts/${attemptId}/result`, { replace: true });
       } catch (error) {
         console.error("Auto submit failed:", error);
+
+        /*
+        If the attempt was already completed,
+        simply go to the result instead of
+        showing an unnecessary alert.
+      */
+        if (
+          error.response?.data?.message ===
+          "Attempt has not expired or is already completed"
+        ) {
+          setTimeout(() => {
+            autoSubmitQuiz();
+          }, 1000);
+
+          return;
+        }
 
         alert(
           error.response?.data?.message ||
             "Quiz could not be submitted automatically."
         );
+
+        autoSubmitStarted.current = false;
       }
     };
 
@@ -232,7 +258,7 @@ const StudentQuizAttempt = () => {
         }
       );
 
-      navigate(`/student/attempts/${attemptId}/result`);
+      navigate(`/student/attempts/${attemptId}/result`, { replace: true });
     } catch (error) {
       alert(error.response?.data?.message || "Failed to submit quiz");
     }

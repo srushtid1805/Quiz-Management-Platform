@@ -138,7 +138,7 @@ const getStudentDashboardData = async (userId) => {
 
   const recentAttemptsResult = await pool.query(recentAttemptsQuery, [userId]);
 
-  const availableQuizzesQuery = `
+const availableQuizzesQuery = `
     SELECT
         q.id,
         q.title,
@@ -149,13 +149,15 @@ const getStudentDashboardData = async (userId) => {
         q.passing_score,
         q.max_attempts,
 
-        COUNT(a.id) FILTER (
+        COUNT(DISTINCT a.id) FILTER (
             WHERE a.status IN ('PASSED', 'FAILED')
         ) AS attempts_used,
 
+        COUNT(DISTINCT qu.id) AS total_questions,
+
         GREATEST(
             q.max_attempts -
-            COUNT(a.id) FILTER (
+            COUNT(DISTINCT a.id) FILTER (
                 WHERE a.status IN ('PASSED', 'FAILED')
             ),
             0
@@ -169,6 +171,9 @@ const getStudentDashboardData = async (userId) => {
     LEFT JOIN attempts a
         ON a.quiz_id = q.id
         AND a.user_id = $1
+
+    LEFT JOIN questions qu
+        ON qu.quiz_id = q.id
 
     WHERE q.status = 'PUBLISHED'
 
@@ -190,14 +195,22 @@ const getStudentDashboardData = async (userId) => {
     userId
   ]);
 
-  const availableQuizzes = availableQuizzesResult.rows.map((quiz) => ({
-    ...quiz,
-    attempts_used: Number(quiz.attempts_used),
+const availableQuizzes = availableQuizzesResult.rows.map((quiz) => ({
+  ...quiz,
 
-    attempts_remaining: Number(quiz.attempts_remaining),
+  attempts_used:
+    Number(quiz.attempts_used),
 
-    can_attempt: Number(quiz.attempts_remaining) > 0
-  }));
+  attempts_remaining:
+    Number(quiz.attempts_remaining),
+
+  total_questions:
+    Number(quiz.total_questions),
+
+  can_attempt:
+    Number(quiz.attempts_remaining) > 0 &&
+    Number(quiz.total_questions) > 0
+}));
 
   return {
     statistics: statisticsResult.rows[0],

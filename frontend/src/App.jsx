@@ -7,6 +7,9 @@ import AdminStudents from "./pages/admin/AdminStudents";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminQuizzes from "./pages/admin/AdminQuizzes";
 import AdminQuestions from "./pages/admin/AdminQuestions";
+import AdminAttemptResult from "./pages/admin/AdminAttemptResult";
+import AdminAttempts from "./pages/admin/AdminAttempts";
+
 
 import StudentLogin from "./pages/student/StudentLogin";
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -17,14 +20,14 @@ import StudentResult from "./pages/student/StudentResult";
 import StudentAttemptHistory from "./pages/student/StudentAttemptHistory";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
 import StudentProfile from "./pages/student/StudentProfile";
-import AdminAttempts from "./pages/admin/AdminAttempts";
-import AdminAttemptResult from "./pages/admin/AdminAttemptResult";
+import StudentRegister from "./pages/student/StudentRegister";
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/" element={<Navigate to="/student/login" replace />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -32,12 +35,11 @@ function App() {
           path="/admin/dashboard"
           element={
             <AdminProtectedRoute>
-              <AdminProtectedRoute>
-                <AdminDashboard />
-              </AdminProtectedRoute>
+              <AdminDashboard />
             </AdminProtectedRoute>
           }
         />
+
         <Route
           path="/admin/students"
           element={
@@ -155,6 +157,8 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
+        <Route path="/student/register" element={<StudentRegister />} />
       </Routes>
     </BrowserRouter>
   );
