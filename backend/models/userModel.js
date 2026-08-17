@@ -108,11 +108,34 @@ const findUserById = async (id) => {
     return result.rows[0];
 };
 
+const updateStudentAvatar = async (id, avatar) => {
+    const query = `
+        UPDATE users
+        SET avatar = $1
+        WHERE id = $2
+        AND role = 'STUDENT'
+        RETURNING
+            id,
+            name,
+            email,
+            role,
+            status,
+            avatar
+    `;
+
+    const result = await pool.query(
+        query,
+        [avatar, id]
+    );
+
+    return result.rows[0];
+};
+
 module.exports = {
     getAllStudents,
     getStudentById,
     updateStudentStatus,
     deleteStudent,
     findUserById,
-
+    updateStudentAvatar,
 };

@@ -168,6 +168,36 @@ const deleteQuestion = async (id) => {
 
     return result.rows[0];
 };
+const updateOption = async ({
+    optionId,
+    questionId,
+    optionText,
+    isCorrect,
+}) => {
+    const query = `
+        UPDATE options
+        SET
+            option_text = $1,
+            is_correct = $2
+        WHERE id = $3
+        AND question_id = $4
+        RETURNING *
+    `;
+
+    const values = [
+        optionText,
+        isCorrect,
+        optionId,
+        questionId,
+    ];
+
+    const result = await pool.query(
+        query,
+        values
+    );
+
+    return result.rows[0];
+};
 
 module.exports = {
     findQuizById,
@@ -175,5 +205,6 @@ module.exports = {
     createOption,
     getQuestionsByQuizId,
     updateQuestion,
+    updateOption,
     deleteQuestion,
 };

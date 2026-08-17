@@ -6,6 +6,7 @@ const {
 
 const {
     findUserById,
+    updateStudentAvatar,
 } = require("../models/userModel");
 
 const generateToken = require("../utils/generateToken");
@@ -199,8 +200,64 @@ const getStudentProfile = async (req, res) => {
     }
 };
 
+const updateAvatar = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { avatar } = req.body;
+
+        const allowedAvatars = [
+            "cat",
+            "panda",
+            "fox",
+            "bear",
+            "rabbit",
+        ];
+
+        if (
+            !avatar ||
+            !allowedAvatars.includes(avatar)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid avatar selection",
+            });
+        }
+
+        const updatedUser =
+            await updateStudentAvatar(
+                userId,
+                avatar
+            );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "Student not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Avatar updated successfully",
+            user: updatedUser,
+        });
+
+    } catch (error) {
+        console.error(
+            "Update student avatar error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
 module.exports = {
     registerStudent,
     loginStudent,
     getStudentProfile,
+    updateAvatar,
 };

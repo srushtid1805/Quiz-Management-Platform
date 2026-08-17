@@ -3,7 +3,8 @@ const express = require("express");
 const {
   registerStudent,
   loginStudent,
-  getStudentProfile
+  getStudentProfile,
+  updateAvatar,
 } = require("../controllers/authController");
 
 const protect = require("../middleware/authMiddleware");
@@ -36,5 +37,13 @@ router.get("/student-test", protect, studentOnly, (req, res) => {
     message: "Welcome Student!"
   });
 });
+
+// for avtar
+router.put(
+    "/profile/avatar",
+    protect,
+    studentOnly,
+    updateAvatar
+);
 
 module.exports = router;

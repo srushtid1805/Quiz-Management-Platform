@@ -98,30 +98,35 @@ const StudentDashboard = () => {
           title="Total Attempts"
           value={stats.total_attempts}
           color="#6d5dfc"
+          icon="📝"
         />
 
         <StatCard
           title="Passed"
           value={stats.passed_attempts}
           color="#22c55e"
+          icon="✓"
         />
 
         <StatCard
           title="Failed"
           value={stats.failed_attempts}
           color="#ef4444"
+          icon="✕"
         />
 
         <StatCard
           title="Average Score"
           value={`${stats.average_score}%`}
           color="#6366f1"
+          icon="📊"
         />
 
         <StatCard
           title="Highest Score"
           value={`${stats.highest_score}%`}
           color="#f59e0b"
+          icon="🏆"
         />
       </div>
       {/* CONTINUE QUIZ */}
@@ -491,7 +496,7 @@ const formatDashboardDate = (date) => {
   });
 };
 
-const StatCard = ({ title, value, color }) => {
+const StatCard = ({ title, value, color, icon }) => {
   return (
     <div
       style={{
@@ -508,9 +513,19 @@ const StatCard = ({ title, value, color }) => {
           height: "42px",
           borderRadius: "12px",
           background: `${color}15`,
-          marginBottom: "12px"
+          marginBottom: "12px",
+
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+
+          color: color,
+          fontSize: "21px",
+          fontWeight: "700"
         }}
-      />
+      >
+        {icon}
+      </div>
 
       <h2
         style={{

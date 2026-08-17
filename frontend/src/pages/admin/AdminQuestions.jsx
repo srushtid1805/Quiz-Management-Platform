@@ -109,7 +109,8 @@ const AdminQuestions = () => {
             questionText: formData.questionText,
             marks: Number(formData.marks),
             explanation: formData.explanation,
-            difficulty: formData.difficulty
+            difficulty: formData.difficulty,
+            options: formData.options
           },
           {
             headers: {
@@ -168,6 +169,7 @@ const AdminQuestions = () => {
       difficulty: question.difficulty,
 
       options: question.options.map((option) => ({
+        id: option.id,
         optionText: option.option_text,
         isCorrect: option.is_correct
       }))
